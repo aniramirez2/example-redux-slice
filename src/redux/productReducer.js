@@ -10,12 +10,22 @@ const productSlice = createSlice({
     initialState,
     reducers: {
         setProducts: (state, action) => {            
-            state.productos = action.payload;
-            console.log("productos", state.productos)          
+            state.productos = action.payload;         
+        },
+        addProduct: (state, action) => {
+            state.productos = [...state.productos, action.payload]
+        },
+        updateProduct: (state, action) => {
+            state.productos = state.productos.map((product)=>product.id === action.payload.id ? {
+                ...action.payload
+            }: product)
+        },
+        deleteProduct: (state, action) => {
+            state.productos = [...state.productos.slice(0, action.payload)]
         }
     }
 })
 
-export const { setProducts } = productSlice.actions;
+export const { setProducts, addProduct, updateProduct, deleteProduct } = productSlice.actions;
   
 export default productSlice.reducer;

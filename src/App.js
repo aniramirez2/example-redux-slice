@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, logout } from './redux/authActions';
-import { getProductsFromFirestore } from './redux/productActions';
+import { getProductsFromFirestore, addProductToFirestore, updateProductToFirestore, deleteProductToFirestore } from './redux/productActions';
 
 function App() {
   const dispatch = useDispatch();
@@ -10,6 +10,7 @@ function App() {
   const prods = useSelector((store) => store.productReducer.productos);
   const [product, setProduct] = useState('')
   const [price, setPrice] = useState('')
+  const [selectedProductId, setSelectedProductId] = useState(null)
 
   useEffect(() => {
     dispatch(getProductsFromFirestore());
@@ -27,7 +28,39 @@ function App() {
     e.preventDefault();
     console.log("producto", product);
     console.log("precio", price)
+    const producto = {
+      nombre: product,
+      precio: price
+    }
+    dispatch(addProductToFirestore(producto));
+    setProduct("");
+    setPrice("");
   }
+
+  const handleEdit = (producto) => {
+    setProduct(producto.nombre);
+    setPrice(producto.precio);
+    setSelectedProductId(producto.id);
+  }
+
+  const handleUpdateForm = (e) => {
+    e.preventDefault();
+    const producto = {
+      nombre: product,
+      precio: price,
+      id: selectedProductId
+    }
+    dispatch(updateProductToFirestore(producto));
+    setProduct("");
+    setPrice("");
+    setSelectedProductId(null);
+  }
+
+  const handleDelete = (producto) => {
+    const index = prods.findIndex(item => item.id === producto.id);
+    dispatch(deleteProductToFirestore(producto.id, index));
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -39,15 +72,27 @@ function App() {
           </div>
         }
         <form id="sencillo">
+          <br />
           <label>Producto</label>
-          <input name="product" type='text' onChange={(e) => setProduct(e.target.value)}></input>
-          <label>Precio0</label>
-          <input name="precio" type='number' onChange={(e) => setPrice(e.target.value)}></input>
-          <button onClick={(e) => handleSendForm(e)}>Enviar</button>
+          <input name="product" value={product} type='text' onChange={(e) => setProduct(e.target.value)}></input>
+          <br /><br />
+          <label>Precio</label>
+          <input name="precio" value={price} type='number' onChange={(e) => setPrice(e.target.value)}></input>
+          <br /><br />
+          {selectedProductId ?
+            <button onClick={(e) => handleUpdateForm(e)}>Editar</button> :
+            <button onClick={(e) => handleSendForm(e)}>Enviar</button>
+          }
         </form>
         <br />
         <header>Lista de productos</header>
-        {prods.map(item => <div key={item.id}>{item.nombre} - {item.precio}</div> )}
+        {prods.map(producto =>
+          <div key={producto.id}>
+            {producto.nombre} - {producto.precio}
+            <button onClick={() => handleEdit(producto)}>Editar</button>
+            <button onClick={() => handleDelete(producto)}>Eliminar</button>
+          </div>
+        )}
       </header>
     </div>
   );
