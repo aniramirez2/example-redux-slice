@@ -1,6 +1,6 @@
-import { collection, getDocs, addDoc, doc, setDoc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, doc, setDoc, deleteDoc, query, where, orderBy, startAt } from "firebase/firestore";
 import { firestore } from "../firebaseConfig";
-import {setProducts, addProduct, updateProduct, deleteProduct} from './productReducer';
+import {setProducts, addProduct, updateProduct, deleteProduct } from './productReducer';
 
 const productCollection = collection(firestore, "productos")
 
@@ -48,6 +48,22 @@ export const deleteProductToFirestore = (id, index) => {
         try {
             await deleteDoc(doc(productCollection, id));
             dispatch(deleteProduct(index))
+        } catch (error) {
+            console.log("error", error);
+        }
+    };
+};
+
+export const getProductsByName = (name) => {
+    return async (dispatch) => {
+        try {
+            //const queryResult = await getDocs(query(productCollection, where("nombre", "==", name)));
+            const queryResult = await getDocs(query(productCollection, orderBy('nombre'), startAt(name)))
+            const tempArr = []
+            queryResult.forEach((doc) => {
+                tempArr.push({ id: doc.id, ...doc.data() })
+            });
+            dispatch(setProducts(tempArr))
         } catch (error) {
             console.log("error", error);
         }

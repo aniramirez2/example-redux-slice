@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, logout } from './redux/authActions';
-import { getProductsFromFirestore, addProductToFirestore, updateProductToFirestore, deleteProductToFirestore } from './redux/productActions';
+import { 
+  getProductsFromFirestore, 
+  addProductToFirestore, 
+  updateProductToFirestore, 
+  deleteProductToFirestore,
+  getProductsByName
+ } from './redux/productActions';
 
 function App() {
   const dispatch = useDispatch();
@@ -10,6 +16,7 @@ function App() {
   const prods = useSelector((store) => store.productReducer.productos);
   const [product, setProduct] = useState('')
   const [price, setPrice] = useState('')
+  const [search, setSearch] = useState('')
   const [selectedProductId, setSelectedProductId] = useState(null)
 
   useEffect(() => {
@@ -61,6 +68,14 @@ function App() {
     dispatch(deleteProductToFirestore(producto.id, index));
   }
 
+  const handleSearch = () => {
+    dispatch(getProductsByName(search));
+  }
+
+  const handleCleanSearch = () => {
+    dispatch(getProductsFromFirestore());
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -86,6 +101,9 @@ function App() {
         </form>
         <br />
         <header>Lista de productos</header>
+        <input type='text' value={search} onChange={(e) => setSearch(e.target.value)} />
+        <button type="button" onClick={() => handleSearch()}>Buscar</button>
+        <button type="button" onClick={() => handleCleanSearch()}>Limpiar busqueda</button>
         {prods.map(producto =>
           <div key={producto.id}>
             {producto.nombre} - {producto.precio}
